@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-color: #0d6efd;
+  --primary-hover: #0b5ed7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,4 +43,18 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+/* カスタムユーティリティクラス */
+.hero-section {
+  background: var(--primary-color);
+  background: linear-gradient(45deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+}
+
+.card-hover {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
 }
