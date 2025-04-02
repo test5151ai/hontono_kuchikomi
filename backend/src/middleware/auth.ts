@@ -1,58 +1,93 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import { IUser } from '../types/user';
+import config from '../config/config';
+import { UserDocument } from '../types/user';
 
 interface CustomRequest extends Request {
-  user?: IUser;
+  user?: UserDocument;
 }
 
-// 認証ミドルウェア
-export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  let token;
-
-  if (req.headers.authorization?.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
+/**
+ * リクエストのAuthorizationヘッダーまたはCookieからトークンを取得
+ */
+const getTokenFromRequest = (req: Request): string | null => {
+  // Authorizationヘッダーからトークンを取得
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    return req.headers.authorization.split(' ')[1];
   }
 
-  if (!token) {
-    res.status(401).json({
-      success: false,
-      error: '認証が必要です'
-    });
-    return;
+  // Cookieからトークンを取得
+  if (req.cookies.token) {
+    return req.cookies.token;
   }
 
+  return null;
+};
+
+/**
+ * 認証が必要なルートを保護するミドルウェア
+ */
+export const protect = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-    const user = await User.findById(decoded.id);
-    
-    if (!user) {
+    const token = getTokenFromRequest(req);
+
+    if (!token) {
       res.status(401).json({
         success: false,
-        error: 'ユーザーが存在しません'
+        error: '認証が必要です'
       });
       return;
     }
-    
-    (req as CustomRequest).user = user;
-    next();
+
+    try {
+      // トークンの検証
+      const decoded = jwt.verify(token, config.jwtSecret) as jwt.JwtPayload;
+
+      // ユーザーの取得
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          error: 'ユーザーが見つかりません'
+        });
+        return;
+      }
+
+      // リクエストオブジェクトにユーザー情報を追加
+      req.user = user;
+      next();
+    } catch (error) {
+      res.status(401).json({
+        success: false,
+        error: 'トークンが無効です'
+      });
+      return;
+    }
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      error: 'トークンが無効です'
-    });
+    next(error);
   }
 };
 
-// 管理者権限チェックミドルウェア
-export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
-  if ((req as CustomRequest).user?.role !== 'admin') {
+/**
+ * 管理者権限が必要なルートを保護するミドルウェア
+ */
+export const requireAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user || req.user.role !== 'admin') {
     res.status(403).json({
       success: false,
-      error: '管理者のみアクセス可能です'
+      error: '管理者権限が必要です'
     });
     return;
   }
