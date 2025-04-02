@@ -1,16 +1,13 @@
 import express, { Express, Request, Response } from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
+import config from './config/config';
+import connectDB from './config/database';
 import authRoutes from './routes/auth';
 import institutionRoutes from './routes/institutions';
-
-// 環境変数の読み込み
-dotenv.config();
+import errorHandler from './middleware/error';
 
 // Expressアプリケーションの作成
 const app: Express = express();
-const PORT = process.env.PORT || 5000;
 
 // ミドルウェアの設定
 app.use(cors());
@@ -21,6 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/institutions', institutionRoutes);
 
+// エラーハンドリングミドルウェア
+app.use(errorHandler);
+
 // ルートエンドポイント
 app.get('/', (req: Request, res: Response) => {
   res.send('金融機関口コミサイト API サーバーが稼働中です');
@@ -30,12 +30,11 @@ app.get('/', (req: Request, res: Response) => {
 const startServer = async () => {
   try {
     // MongoDBへの接続
-    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/hontono_kuchikomi';
-    await mongoose.connect(MONGO_URI);
-    console.log('MongoDBに接続しました');
+    await connectDB();
 
-    app.listen(PORT, () => {
-      console.log(`サーバーがポート ${PORT} で起動しました`);
+    app.listen(config.port, () => {
+      console.log(`サーバーがポート ${config.port} で起動しました`);
+      console.log(`環境: ${config.nodeEnv}`);
     });
   } catch (error) {
     console.error('サーバーの起動に失敗しました:', error);
