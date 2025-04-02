@@ -33,11 +33,14 @@ hontono_kuchikomi/
 ## データモデル
 
 ### User (ユーザー)
-- name: ユーザー名
-- email: メールアドレス
-- password: パスワード
-- role: ロール（user/admin）
+- name: ユーザー名（必須、50文字以内）
+- email: メールアドレス（必須、一意）
+- password: パスワード（必須、8文字以上、暗号化）
+- role: ロール（user/admin、デフォルトはuser）
+- isApproved: 承認状態（デフォルトはfalse）
+- approvalScreenshot: 承認用スクリーンショット
 - createdAt: 作成日時
+- updatedAt: 更新日時
 
 ### FinancialInstitution (金融機関)
 - name: 金融機関名
@@ -116,11 +119,18 @@ npm run dev
    - 管理者ダッシュボード
 
 ## 既知の問題点
-- TypeScriptのコンパイルエラー：型定義に関する問題があります
-  - User.tsの`jwt.sign`関数
+- ~~TypeScriptのコンパイルエラー：型定義に関する問題があります~~
+  - ~~User.tsの`jwt.sign`関数~~
   - Review.tsの`post('remove')`メソッド
   - ルート定義での戻り値の型
 
+## 実装済みの機能
+1. バックエンド
+   - ユーザーモデルの実装
+     - パスワードの自動暗号化
+     - JWTトークン生成
+     - メールアドレスの一意性チェック
+   - 環境変数の設定
 ## メンテナンス
 - データベースのバックアップ手順（未実装）
 - 定期的なセキュリティアップデート
