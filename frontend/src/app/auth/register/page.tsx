@@ -53,7 +53,6 @@ export default function Register() {
         throw new Error(data.error || '登録に失敗しました');
       }
 
-      // 登録成功後、承認待ちページにリダイレクト
       router.push('/auth/approval-pending');
     } catch (err) {
       setError(err instanceof Error ? err.message : '登録に失敗しました');
@@ -65,8 +64,16 @@ export default function Register() {
   return (
     <div className={styles.authContainer}>
       <div className={styles.authCard}>
-        <h1 className={styles.title}>新規登録</h1>
-        {error && <div className={styles.error}>{error}</div>}
+        <h1 className={styles.title}>アカウント作成</h1>
+        {error && (
+          <div className={styles.error}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+            </svg>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="name">お名前</label>
@@ -78,6 +85,8 @@ export default function Register() {
               onChange={handleChange}
               required
               className={styles.input}
+              placeholder="山田 太郎"
+              autoComplete="name"
             />
           </div>
           <div className={styles.formGroup}>
@@ -90,6 +99,8 @@ export default function Register() {
               onChange={handleChange}
               required
               className={styles.input}
+              placeholder="example@example.com"
+              autoComplete="email"
             />
           </div>
           <div className={styles.formGroup}>
@@ -102,6 +113,9 @@ export default function Register() {
               onChange={handleChange}
               required
               className={styles.input}
+              placeholder="8文字以上の英数字"
+              autoComplete="new-password"
+              minLength={8}
             />
           </div>
           <div className={styles.formGroup}>
@@ -114,6 +128,9 @@ export default function Register() {
               onChange={handleChange}
               required
               className={styles.input}
+              placeholder="パスワードを再入力"
+              autoComplete="new-password"
+              minLength={8}
             />
           </div>
           <button
@@ -121,7 +138,7 @@ export default function Register() {
             disabled={loading}
             className={styles.button}
           >
-            {loading ? '登録中...' : '登録する'}
+            {loading ? '登録中...' : 'アカウントを作成'}
           </button>
         </form>
         <div className={styles.link}>
