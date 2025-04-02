@@ -1,16 +1,22 @@
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export interface IUser {
   name: string;
   email: string;
   password: string;
+  role: 'user' | 'admin';
   isApproved: boolean;
   approvalScreenshot?: string;
-  role: 'user' | 'admin';
-  matchPassword(enteredPassword: string): Promise<boolean>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type UserDocument = Document<unknown, any, IUser> & IUser & {
-  _id: Types.ObjectId;
-  __v: number;
-}; 
+export interface UserDocument extends IUser, Document {
+  matchPassword(enteredPassword: string): Promise<boolean>;
+  getSignedJwtToken(): string;
+}
+
+export interface UserModel extends Document {
+  matchPassword(enteredPassword: string): Promise<boolean>;
+  getSignedJwtToken(): string;
+} 

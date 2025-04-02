@@ -51,16 +51,16 @@ const Navbar = () => {
           <ul className="navbar-nav">
             <li className="nav-item">
               <Link 
-                href="/login" 
-                className={`nav-link ${pathname === '/login' ? 'active' : ''}`}
+                href="/auth/login" 
+                className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
               >
                 ログイン
               </Link>
             </li>
             <li className="nav-item">
               <Link 
-                href="/register" 
-                className={`nav-link ${pathname === '/register' ? 'active' : ''}`}
+                href="/auth/register" 
+                className={`nav-link ${pathname === '/auth/register' ? 'active' : ''}`}
               >
                 新規登録
               </Link>
