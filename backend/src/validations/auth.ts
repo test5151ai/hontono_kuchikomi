@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 export const registerValidation = [
   body('name')
@@ -39,4 +39,23 @@ export const loginValidation = [
     .trim()
     .notEmpty()
     .withMessage('パスワードは必須です')
+];
+
+export const approvalScreenshotValidation = [
+  body('screenshot')
+    .custom((value, { req }) => {
+      if (!req.file) {
+        throw new Error('スクリーンショットは必須です');
+      }
+      return true;
+    })
+];
+
+export const approveUserValidation = [
+  param('userId')
+    .trim()
+    .notEmpty()
+    .withMessage('ユーザーIDは必須です')
+    .isMongoId()
+    .withMessage('無効なユーザーIDです')
 ]; 
