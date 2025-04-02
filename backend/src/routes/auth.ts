@@ -1,42 +1,52 @@
-import express from 'express';
+import express, { Request } from 'express';
+import multer, { FileFilterCallback } from 'multer';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import {
   register,
   login,
   logout,
-  getMe
+  getMe,
+  uploadApprovalScreenshot,
+  getPendingUsers,
+  approveUser
 } from '../controllers/auth';
-import { protect } from '../middleware/auth';
+import { protect, requireAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validate';
-import { registerValidation, loginValidation } from '../validations/auth';
+import {
+  registerValidation,
+  loginValidation,
+  approvalScreenshotValidation,
+  approveUserValidation
+} from '../validations/auth';
 
 const router = express.Router();
 
-// パブリックルート
-router.post('/register', validate(registerValidation), register);
-router.post('/login', validate(loginValidation), login);
-
-// プライベートルート（認証が必要）
-router.get('/logout', protect, logout);
-router.get('/me', protect, getMe);
-
-/* 承認機能は後で実装
-// ファイルアップロード設定
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { requireAdmin } from '../middleware/auth';
-
+// ストレージ設定
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, destination: string) => void
+  ) => {
     cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
+  filename: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, filename: string) => void
+  ) => {
     const uniqueFilename = `${uuidv4()}${path.extname(file.originalname)}`;
     cb(null, uniqueFilename);
   }
 });
 
-const fileFilter = (req, file, cb) => {
+// ファイルタイプ検証
+const fileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback
+) => {
   const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
   
   if (allowedMimeTypes.includes(file.mimetype)) {
@@ -46,6 +56,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// アップロード設定
 const upload = multer({
   storage,
   fileFilter,
@@ -54,10 +65,29 @@ const upload = multer({
   }
 });
 
+// パブリックルート
+router.post('/register', validate(registerValidation), register);
+router.post('/login', validate(loginValidation), login);
+
+// プライベートルート（認証が必要）
+router.get('/logout', protect, logout);
+router.get('/me', protect, getMe);
+
 // 承認関連ルート
-router.post('/approval-screenshot', protect, upload.single('screenshot'), uploadApprovalScreenshot);
+router.post(
+  '/approval-screenshot',
+  protect,
+  upload.single('screenshot'),
+  validate(approvalScreenshotValidation),
+  uploadApprovalScreenshot
+);
 router.get('/pending-users', protect, requireAdmin, getPendingUsers);
-router.put('/approve-user/:userId', protect, requireAdmin, approveUser);
-*/
+router.put(
+  '/approve-user/:userId',
+  protect,
+  requireAdmin,
+  validate(approveUserValidation),
+  approveUser
+);
 
 export default router; 
