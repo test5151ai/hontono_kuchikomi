@@ -65,11 +65,11 @@ UserSchema.methods.matchPassword = async function(enteredPassword: string): Prom
 // JWTトークンの生成
 UserSchema.methods.getSignedJwtToken = function(): string {
   const signOptions: SignOptions = {
-    expiresIn: config.jwtExpire as jwt.SignOptions['expiresIn']
+    expiresIn: config.jwt.expire as jwt.SignOptions['expiresIn']
   };
   return jwt.sign(
     { id: this._id },
-    config.jwtSecret as Secret,
+    config.jwt.secret as Secret,
     signOptions
   );
 };
